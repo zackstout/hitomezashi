@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hitomezashi</title>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        background: rgba(106, 90, 205, 0.8);
+      }
+
+      #cont {
+        background: rgba(106, 90, 205, 0.99);
+      }
+
+      svg {
+        height: 80vh;
+        width: 80vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cont">
+      <svg viewbox="0 0 100 100">
+        <!-- <circle cx="50" cy="50" r="25" fill="green"></circle> -->
+      </svg>
+    </div>
+
+    <script>
+      const viewBox = {
+        w: 100,
+        h: 100,
+      };
+      // Given some input for x and y coords (how they should choose on/off),
+      // this should return list of all lines (both horizontal and vertical) that comprise the pattern.
+      const makeHitomezashi = () => {
+        const r = 20;
+        const c = 20;
+        const result = [];
+        const rowInput = [...new Array(r)].map((x) =>
+          Math.random() > 0.5 ? 1 : 0
+        );
+        const colInput = [...new Array(c)].map((x) =>
+          Math.random() > 0.5 ? 1 : 0
+        );
+
+        // Make horizontal lines
+        for (let y = 0; y < r; y++) {
+          // row start will depend on rowInput -- either shifted or not
+          const rowStart = rowInput[y];
+          //   console.log(rowStart);
+          let first = null;
+          for (let x = rowStart; x < c; x++) {
+            const yPos = Math.floor((y * viewBox.h) / r);
+            const xPos = Math.floor((x * viewBox.w) / c);
+            // console.log(xPos, yPos);
+            if (first) {
+              result.push([{ ...first }, { x: xPos, y: yPos }]);
+              first = null;
+            } else {
+              first = {
+                x: xPos,
+                y: yPos,
+              };
+            }
+          }
+        }
+
+        // Make vertical lines
+        for (let x = 0; x < c; x++) {
+          const colStart = colInput[x];
+          //   console.log(colStart);
+          let first = null;
+          for (let y = colStart; y < r; y++) {
+            const yPos = Math.floor((y * viewBox.h) / r);
+            const xPos = Math.floor((x * viewBox.w) / c);
+            // console.log(xPos, yPos);
+            if (first) {
+              result.push([{ ...first }, { x: xPos, y: yPos }]);
+              first = null;
+            } else {
+              first = {
+                x: xPos,
+                y: yPos,
+              };
+            }
+          }
+        }
+
+        return result;
+      };
+
+      const run = () => {
+        const svg = document.querySelector("svg");
+        const lines = makeHitomezashi();
+        // console.log("lines", lines);
+        lines.forEach((data) => {
+          const line = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+          );
+          line.setAttribute("x1", data[0].x);
+          line.setAttribute("y1", data[0].y);
+          line.setAttribute("x2", data[1].x);
+          line.setAttribute("y2", data[1].y);
+          line.setAttribute("stroke", "black");
+          line.setAttribute("stroke-width", "2");
+          svg.appendChild(line);
+        });
+      };
+
+      window.onload = run;
+    </script>
+  </body>
+</html>
