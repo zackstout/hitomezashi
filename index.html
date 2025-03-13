@@ -12,7 +12,6 @@
         height: 100vh;
         width: 100vw;
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
         overflow: hidden;
@@ -21,11 +20,55 @@
 
       #cont {
         background: rgba(106, 90, 205, 0.99);
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
       svg {
         height: 80vh;
         width: 80vh;
+      }
+
+      #gui {
+        width: 30vw;
+        height: 80vh;
+        background: rgba(106, 90, 205, 0.4);
+        margin-left: 3rem;
+        padding: 3rem 1rem 1rem 1rem;
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      #run-btn {
+        margin-top: 2rem;
+
+        background: rgba(106, 90, 205, 0.9);
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      #run-btn:hover {
+        background: rgba(106, 90, 205, 0.7);
+      }
+
+      .input-container {
+        display: flex;
+      }
+      .input-container div {
+        margin-left: 1rem;
+      }
+
+      #vert {
+        margin-top: 1rem;
       }
     </style>
   </head>
@@ -35,6 +78,39 @@
         <!-- <circle cx="50" cy="50" r="25" fill="green"></circle> -->
       </svg>
     </div>
+    <div id="gui">
+      <div>
+        <div>Horizontal randomness:</div>
+        <div class="input-container">
+          <input
+            type="range"
+            id="horizontal-random-input"
+            min="0"
+            max="100"
+            step="1"
+            value="50"
+          />
+          <div id="horizontal-random-value">50</div>
+        </div>
+      </div>
+
+      <div id="vert">
+        <div>Vertical randomness:</div>
+        <div class="input-container">
+          <input
+            type="range"
+            id="vertical-random-input"
+            min="0"
+            max="100"
+            step="1"
+            value="50"
+          />
+          <div id="vertical-random-value">50</div>
+        </div>
+      </div>
+
+      <button id="run-btn">Run</button>
+    </div>
 
     <script>
       const viewBox = {
@@ -43,16 +119,21 @@
       };
       // Given some input for x and y coords (how they should choose on/off),
       // this should return list of all lines (both horizontal and vertical) that comprise the pattern.
-      const makeHitomezashi = () => {
+      const makeHitomezashi = (config) => {
         const r = 20;
         const c = 20;
         const result = [];
+        const { horizontal, vertical } = config;
         const rowInput = [...new Array(r)].map((x) =>
-          Math.random() > 0.5 ? 1 : 0
+          Math.random() > horizontal ? 1 : 0
         );
         const colInput = [...new Array(c)].map((x) =>
-          Math.random() > 0.5 ? 1 : 0
+          Math.random() > vertical ? 1 : 0
         );
+
+        // Center it perfectly
+        const xPad = 100 / r / 2;
+        const yPad = 100 / c / 2;
 
         // Make horizontal lines
         for (let y = 0; y < r; y++) {
@@ -61,8 +142,8 @@
           //   console.log(rowStart);
           let first = null;
           for (let x = rowStart; x < c; x++) {
-            const yPos = Math.floor((y * viewBox.h) / r);
-            const xPos = Math.floor((x * viewBox.w) / c);
+            const yPos = Math.floor((y * viewBox.h) / r) + xPad;
+            const xPos = Math.floor((x * viewBox.w) / c) + yPad;
             // console.log(xPos, yPos);
             if (first) {
               result.push([{ ...first }, { x: xPos, y: yPos }]);
@@ -82,8 +163,10 @@
           //   console.log(colStart);
           let first = null;
           for (let y = colStart; y < r; y++) {
-            const yPos = Math.floor((y * viewBox.h) / r);
-            const xPos = Math.floor((x * viewBox.w) / c);
+            // NOTE: adding padding to horizontal but not verical is iteresting
+
+            const yPos = Math.floor((y * viewBox.h) / r) + xPad;
+            const xPos = Math.floor((x * viewBox.w) / c) + yPad;
             // console.log(xPos, yPos);
             if (first) {
               result.push([{ ...first }, { x: xPos, y: yPos }]);
@@ -100,10 +183,11 @@
         return result;
       };
 
-      const run = () => {
+      const updateCanvas = (lines) => {
         const svg = document.querySelector("svg");
-        const lines = makeHitomezashi();
-        // console.log("lines", lines);
+
+        svg.innerHTML = "";
+
         lines.forEach((data) => {
           const line = document.createElementNS(
             "http://www.w3.org/2000/svg",
@@ -116,6 +200,46 @@
           line.setAttribute("stroke", "black");
           line.setAttribute("stroke-width", "2");
           svg.appendChild(line);
+        });
+      };
+
+      const run = () => {
+        const config = {
+          horizontal: 0.5,
+          vertical: 0.5,
+        };
+        const lines = makeHitomezashi(config);
+        updateCanvas(lines);
+
+        const horizontalInput = document.querySelector(
+          "#horizontal-random-input"
+        );
+        const verticalInput = document.querySelector("#vertical-random-input");
+        const horizontalValue = document.querySelector(
+          "#horizontal-random-value"
+        );
+        const verticalValue = document.querySelector("#vertical-random-value");
+        const runBtn = document.querySelector("#run-btn");
+
+        runBtn.addEventListener("click", () => {
+          const lines = makeHitomezashi(config);
+          updateCanvas(lines);
+        });
+
+        horizontalInput.addEventListener("input", (ev) => {
+          const val = ev.target.value;
+          horizontalValue.innerHTML = val;
+          config.horizontal = val / 100;
+          const lines = makeHitomezashi(config);
+          updateCanvas(lines);
+        });
+
+        verticalInput.addEventListener("input", (ev) => {
+          const val = ev.target.value;
+          verticalValue.innerHTML = val;
+          config.vertical = val / 100;
+          const lines = makeHitomezashi(config);
+          updateCanvas(lines);
         });
       };
 
