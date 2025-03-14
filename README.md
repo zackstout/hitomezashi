@@ -8,4 +8,4 @@ Each line is composed of alternating line segments and empty spaces (like a dash
 
 Different patterns emerge when we offset these lines according to different rulesets. (Where a "ruleset" is a list of 0s and 1s, to indicate whether to offset the line or not.)
 
-![Hitomezashi](hitomezashi.png)
+![Hitomezashi](hito2.png)
